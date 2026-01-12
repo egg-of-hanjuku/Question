@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>問題解くやつ</title>
+    <style>
+        body{
+            background-color: aquamarine;
+            display: flex;
+            justify-content: center;
+        }
+        .center{
+            display: flex;
+            align-items: center;
+            flex-direction: column; 
+        }
+        .block{
+            display: flex;
+            padding: 20px;
+            width: 600px;
+            gap: 15px;
+            background-color: rgba(255, 255, 255, 0.75);
+        }
+        h3{
+            margin: 0px;
+        }
+        .ansbtn{
+            width: 120px;
+            height: 60px;
+            border-radius: 10px;
+            font-size: 30px;
+            color: white;
+            border: none;
+            background-color: rgb(100, 199, 148);
+        }
+        
+        .inpArea{
+            background-color: rgba(157,255,212,0.5);
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .customWord{
+            padding: 3px;
+            width: 35px;
+        }
+        .inpbox{
+            background-color: white;
+            display: flex;
+            flex-direction:row;
+        }
+        .smallbox{
+            padding: 2px;
+            width: 80px;
+        }
+        .mediumbox{
+            padding: 2px;
+            width: 160px;
+        }
+        .largebox{
+            padding: 2px;
+            width: 320px;
+        }
+        .choice{
+            display: flex;
+            flex-direction: column; 
+        }
+        .choiceElement{
+            display: flex;
+            background-color: rgb(255, 255, 255);
+            margin: 5px;;
+            padding: 5px;
+            padding-right: 20px;
+            border-radius: 8px;
+            border: 1.5px solid rgb(192, 192, 192);
+        }
+        .choiceElement:has(input:checked){
+            background-color: rgb(199, 227, 255);
+            border-color: rgb(255, 0, 0);
+        }
+        th{
+            background-color: rgb(193, 255, 236);
+            width: 100%;
+            word-break: keep-all;
+        }
+        td{
+            background-color: rgb(255, 255, 255);
+            width: 100%;
+            word-break: keep-all;
+        }
+        table{
+            background-color: rgba(120, 120, 120,0.5);
+            table-layout: fixed;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="center" id="screen1" style="display: flex;">
+        <h1>問題解くやつ</h1>
+        <div class="block center">
+            
+            <label>問題ファイル(.qst)　<a href="create/" target="_blank" style="font-size: 80%;">作成はこちら</a></label>
+            <input type="file" id="qstFile" accept=".qst">
+        </div>
+        <br>
+        <div>
+            <input type="checkbox" id="isRandom">
+            <label for="isRandom">順番シャッフル</label>
+        </div>
+        <br>
+        <button class="ansbtn" onclick="Start()">開始</button>
+        <div class="preview" id="preview">
+            
+        </div>
+    </div>
+
+    <div id="screen2" style="display: none;">
+        <div class="block center">
+            <h3 id="count">1/1</h3>
+            <pre id="question" style="font-size: large;">問題文</pre>
+            <div class="inpArea" id="inpArea"></div>
+            <button class="ansbtn" id="ansbtn" onclick="Answer()">回答</button>
+            <div id="result"></div>
+            <div id="correct" style="color: red;"></div>
+        </div>
+    </div>
+
+    <div id="screen3" style="display: none;">
+        <div class="center">
+            <div id="miss"></div>
+            <br>
+            <button class="ansbtn" onclick="Back()">戻る</button>
+        </div>
+    </div>
+
+    <script>
+        let preview;
+        document.getElementById("qstFile").addEventListener("change",function(e){
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(){
+                preview = JSON.parse(reader.result);
+            }
+            reader.readAsText(file);
+        })
+
+        n=0;
+        
+        let questions;
+
+        let data;
+
+        function Start(){
+            n=0;
+            mistake=[["問題","あなたの回答","正答"]];
+            questions = structuredClone(preview);
+            data=questions.data;
+            if(document.getElementById("isRandom").checked){
+                for(let i=data.length-1; i>0; i--){
+                    const j = Math.floor(Math.random()*(i+1));
+                    [data[i],data[j]]=[data[j],data[i]];
+                }
+            }
+            document.getElementById("screen1").style="display:none";
+            document.getElementById("screen2").style="display:flex";
+            document.getElementById("screen3").style="display:none";
+            console.log(questions);
+            Ask();
+        }
+
+        document.addEventListener("change",function(e){
+            if(!e.target.classList.contains("customWord"))return;
+            const selected=e.target.value;
+            if(selected=="-")return;
+            
+            const num=e.target.dataset.num;
+            document.getElementById(`answer${num}`).value+=selected;
+            e.target.value="-";
+
+            document.getElementById(`answer${num}`).focus();
+        })
+
+        function inpbox(size,num){
+            const input=
+            `<div>
+            <input type="text" class=${size} id="answer${num}" autocomplete="off">
+            <select class="customWord" id="customWord${num}" data-num=${num}>
+                <option selected>-</option>
+                ${questions.customword.map((d,i)=>
+                    `<option>${d}</option>`
+                ).join("")}
+            </select>
+            </div>`;
+            return input;
+        }
+
+        function Ask(){
+            const sentence=document.getElementById("question");
+            
+            document.getElementById("count").innerText=`${n+1}/${data.length}`;
+
+            const input=document.getElementById("inpArea");
+            if(data[n].type=="write"){
+                sentence.innerText=data[n].question;
+                let box=`<div class="center">`
+                for(let i=0; i<data[n].answer.length; i++){
+                    box+=inpbox(data[n].boxsize,i);
+                }
+                box+="</div>"
+                input.innerHTML=box;
+            }else if(data[n].type=="select"){
+                sentence.innerText=data[n].question;
+                let choice=`<div class="choice">`
+                for(let i=0;i<data[n].choice.length;i++){
+                    choice+=`<label class="choiceElement"><input type="radio" name="choice" value=${data[n].choice[i]}><span>${data[n].choice[i]}</span></label>`;
+                }
+                choice+=`<label class="choiceElement"><input type="radio" name="choice" checked value=NULL><span>わからない</span></label></div>`;
+                input.innerHTML=choice;
+            }else if(data[n].type=="in_write"){
+                let in_W_ques="";
+                for(let i=0,j=0;i<data[n].question.length;i++){
+                    if(data[n].question[i]==="/inpbox/"){
+                        in_W_ques+=inpbox(data[n].boxsize[j],j);
+                        j++;
+                    }else{
+                        in_W_ques+=data[n].question[i];
+                    }
+                }
+                sentence.innerText="";
+                input.innerHTML=in_W_ques;
+            }
+        }
+
+        const result=document.getElementById("result");
+        let mistake=[[]];
+        function Answer(){
+            let inpAns=[];
+            if(data[n].type=="write"){
+                for(let i=0;i<data[n].answer.length;i++){
+                    inpAns.push(document.getElementById(`answer${i}`).value);
+                }
+            }else if(data[n].type=="select"){
+                inpAns.push(document.querySelector('input[name="choice"]:checked').value);
+            }else if(data[n].type=="in_write"){
+                for(let i=0;i<data[n].answer.length;i++){
+                    inpAns.push(document.getElementById(`answer${i}`).value);
+                }
+            }
+            
+            let isTrue=true;
+            for(let i=0;i<data[n].answer.length;i++){
+                if(!(data[n].answer[i].includes(inpAns[i]))){
+                    isTrue=false;
+                }
+            }
+
+            if(isTrue){
+                result.innerText="正解";
+            }else{
+                result.innerText="不正解";
+                let correctAns="";
+                for(let i=0;i<data[n].answer.length;i++){
+                    for(let j=0;j<data[n].answer[i].length;j++){
+                        correctAns+=data[n].answer[i][j];
+                        if(j!=data[n].answer[i].length-1){
+                            correctAns+="/";
+                        }
+                    }
+                    if(i!=data[n].answer.length-1){
+                        correctAns+="　";
+                    }
+                }
+                document.getElementById("correct").innerText=correctAns;
+
+                let yourAns="";
+                for(let i=0; i<inpAns.length;i++){
+                    yourAns+=inpAns[i];
+                    if(i!=inpAns.length-1){
+                        yourAns+="　";
+                    }
+                }
+
+                mistake.push([data[n].question,yourAns,correctAns]);
+            }
+            
+
+            const btn =document.getElementById("ansbtn");
+            btn.innerText="次へ";
+            btn.onclick=Next;
+        }
+
+        function Next(){
+            n++;
+            result.innerText="";
+            document.getElementById("correct").innerText="";
+            const btn =document.getElementById("ansbtn");
+            btn.innerText="回答";
+            btn.onclick=Answer;
+            if(n<data.length)Ask(n);
+            else{
+                
+                Result();
+            }
+        }
+
+        function Result(){
+            document.getElementById("screen1").style="display:none";
+            document.getElementById("screen2").style="display:none";
+            document.getElementById("screen3").style="display:flex";
+
+            const data = structuredClone(mistake);
+
+            const table = document.createElement("table");
+            table.border = "1";
+
+            data.forEach((rowData, i) => {
+            const row = table.insertRow();
+                rowData.forEach(cellData => {
+                    const cell = i === 0 ? document.createElement("th") : document.createElement("td");
+                    cell.textContent = cellData;
+                    row.appendChild(cell);
+                });
+            });
+
+            document.getElementById("miss").appendChild(table);
+        }
+
+        function Back(){
+            document.getElementById("screen1").style="display:flex";
+            document.getElementById("screen2").style="display:none";
+            document.getElementById("screen3").style="display:none";
+            document.getElementById("miss").innerHTML="";
+        }
+    </script>
+</body>
+</html>

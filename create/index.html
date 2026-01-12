@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>問題作成用ページ</title>
+
+    <style>
+        body{
+            background-color: aquamarine;
+            display: flex;
+            justify-content: center;
+        }
+        .center{
+            display: flex;
+            align-items: center;
+            flex-direction: column; 
+        }
+        .block{
+            display: flex;
+            padding: 20px;
+            width: 600px;
+            gap: 15px;
+            background-color: rgba(255, 255, 255, 0.75);
+        }
+        .vertical{
+            display: flex;
+            flex-direction: column;
+        }
+        .question{
+            margin-bottom: 15px;
+        }
+        .question_header{
+            padding: 10px;
+            background-color: rgb(255, 255, 255);
+            width: 550px;
+            border: 3px solid aquamarine;
+            border-radius: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .question_detail{
+            width: 550px;
+            margin-top: -20px;
+            background-color: rgb(187, 241, 224);
+            padding: 10px;
+            padding-top: 25px;
+            border: 1.5px solid aquamarine;
+        }
+        .question_sentence{
+            width: 99%;
+            resize: none;
+        }
+        .inp_question_sentence{
+            width: 99%;
+            resize: none;
+            background-color: rgba(206, 206, 206, 0.511);
+        }
+        .viewbtn{
+            height: 30px;
+            width: 30px;
+            border-radius: 50%;
+            display: row;
+            margin-left: auto;
+        }
+        button{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .deleteQ{
+            margin-left: 40px;
+            border-radius: 30px;
+            color: red;
+            border-color: red;
+        }
+        .deleteOtherAns{
+            margin-left: -24px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            color: red;
+            background-color: white;
+            
+            font-size: 20px;
+        }
+        .deleteAns{
+            margin-left: 4px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            color: red;
+            background-color: white;
+            
+            font-size: 20px;
+        }
+        .addOtherAns{
+            border-radius: 50%;
+            height: 20px;
+            width: 20px;
+            background-color: white;
+            color: rgb(75, 75, 75);
+            
+            font-size: 20px;
+
+            margin: 4px;
+        }
+        .question_add{
+            height: 40px;
+            width: 40px;
+            border-radius: 50%;
+            background-color: rgb(255, 255, 255);
+            font-size: 30px;
+            color: rgb(75, 75, 75);
+        }
+        .downloadbtn{
+            width: 120px;
+            height: 60px;
+            border-radius: 10px;
+            font-size: 30px;
+            color: white;
+            border: none;
+            background-color: rgb(100, 199, 148);
+        }
+        .customHeader{
+            padding: 4px;
+            background-color: rgb(230, 230, 230);
+            width: 98%;
+            border: 2px solid rgb(106, 106, 106);
+            position: relative;
+            z-index: 1
+        }
+        .cstdetail{
+            width: 96%;
+            margin-top: -25px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            padding-top: 25px;
+            border: 2px solid rgb(106, 106, 106);
+        }
+        .cstviewbtn{
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            display: row;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="center">
+        <h1>問題作成用ページ</h1>
+        <div>
+            <div class="block" style="display: row;">
+                <div><input id="title" type="text" style="padding: 6px; font-size: large; align-self: flex-start; width: 150%;"></div>
+                <div style="margin-left: auto; align-self: flex-end;"><label>作成者:<input id="creator" type="text"></label></div>
+            </div>
+            <div class=" center block vertical" id="customWord"></div>
+            <div class="center block">
+                <div id="questions"></div>
+                <button class="question_add" onclick="AddQ()">+</button>
+            </div>
+            <div class="center" style="margin: 20px;">
+                <button class="downloadbtn" onclick="Downlaod()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        
+        let qstData =
+        {
+        title:"無題",
+        creator:"user",
+        customword:[],
+        data:[
+            {
+                num:0,
+                subtitle:"問題1",
+                type:"write",
+                question:"",
+                choice:[""],
+                boxsize:"mediumbox",
+                answer:[[""]],
+
+                view:"flex"
+            }
+        ]
+        }
+
+        let question=[];
+
+        document.addEventListener("change",(e)=>{
+            if(e.target.classList.contains("type")){
+                let data=qstData.data;
+                for(let i=0; i<data.length; i++){
+                    data[i].type=document.getElementById(`type${i}`).value;
+                }
+
+                UpDate();
+                Save();
+            }else{
+            Save();
+            UpDate();
+            }
+        })
+
+        function Save(){
+            let data=qstData.data;
+
+            qstData.title=document.getElementById("title").value;
+            qstData.creator=document.getElementById("creator").value;
+            for(let i=0; i<qstData.customword.length; i++){
+                        qstData.customword[i]=document.getElementById(`cstword${i}`).value;;
+                    }
+            for(let i=0; i<data.length; i++){
+                data[i].num=i;
+                data[i].subtitle=document.getElementById(`subtitle${i}`).value;
+                
+                data[i].question=document.getElementById(`sentence${i}`).value;
+                if(data[i].type=="write"){
+                    for(let j=0; j<data[i].answer.length; j++){
+                        for(let k=0; k<data[i].answer[j].length; k++){
+                            data[i].answer[j][k]=document.getElementById(`ans${i},${j},${k}`).value;;
+                        }
+                    }
+                }else if(data[i].type=="select"){
+                    for(let j=0; j<data[i].choice.length; j++){
+                        data[i].choice[j]=document.getElementById(`choice${i},${j}`).value;;
+                    }
+                    data[i].answer[0][0]=document.getElementById("ans").value;
+                }
+            }
+
+        }
+
+        function UpDate(){
+            let data=qstData.data;
+
+            document.getElementById("title").value=qstData.title;
+            document.getElementById("creator").value=qstData.creator;
+
+            let cstW="";
+
+            cstW+=
+            `
+                <div class="customHeader">
+                    <div style="display: flex; align-items: center; gap: 40px">
+                            <label>特殊文字</label>
+                            <button style="margin-left: auto" id="cstviewbtn" class="cstviewbtn" onclick="CstView()">${cstview=="block"?"∨":"＜"}</button>
+                        
+                    </div>
+                </div>
+                <div class="cstdetail" id="cstdetail" style="display:${cstview}">
+                        <div style="display: flex;">
+                            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+                                ${qstData.customword.map((d,i)=>
+                                `<div style="display: flex; align-items: center; gap: 4px;">
+                                    <input id="cstword${i}" type="text" style="width: 40px; padding-right: 20px;" value="${qstData.customword[i]}">
+                                    <button class="deleteOtherAns" onclick="DeleteCstWord(${i})">-</button>
+                                </div>`).join("")}
+                                <button class="addOtherAns" style="display: flex; align-items: center;" onclick="AddCstWord()">+</button>
+                            </div>
+                        </div>
+                </div>
+            `
+
+            document.getElementById("customWord").innerHTML=cstW;
+
+            let questions="";
+            for(let i=0; i<data.length; i++){
+                questions+=
+                `<div class="question" id="question${i}">
+                    <div class="question_header">
+                            <div style="display: flex; gap: 40px">
+                            <div><input id="subtitle${i}"" type="text" style="font-size: 20px;" value="${data[i].subtitle}"></div>
+                            <div style="margin-right: auto">
+                                <select id="type${i}" class="type">
+                                    <option value="write" ${data[i].type==="write"?"selected":""}>記述</option>
+                                    <option value="select" ${data[i].type==="select"?"selected":""}>選択</option>
+                                </select>
+                            </div>
+                            ${i!=0?`<button id="deleteQ" class="deleteQ" onclick="DeleteQ(${i})">削除</button>`:""}
+                            <div style="margin-left: auto"><button id="viewbtn${i}" class="viewbtn" onclick="View(${i})">${data[i].view=="flex"?"∨":"＜"}</button></div>
+                        </div>
+                    </div>
+                    
+                    <div id="detail${i}" class="question_detail vertical" style="display:${data[i].view}">
+                        <label>・問題文</label>
+                        <textarea id="sentence${i}" class="question_sentence" rows="5" cols="20">${data[i].question}</textarea>
+                        
+                        ${data[i].type==="write"?
+                        `<label>・答え</label>
+                        <div style="margin-left: 16px;">
+                            ${data[i].answer.map((d,j)=>`
+                            <div style="display: flex; align-items: center;"">
+                                <label>回答欄${j+1}</label>
+                                ${j!=0?`<button class="deleteAns" onclick="DeleteAns(${i},${j})">-</button>`:""}
+                            </div>
+                            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+                                ${data[i].answer[j].map((f,k)=>
+                                `<div style="display: flex; align-items: center; gap: 4px;">
+                                    <input id="ans${i},${j},${k}" placeholder=${k==0?"回答":"別解"} type="text" style="width: 95px; padding-right: 20px;" value="${data[i].answer[j][k]}">
+                                    ${k!=0?`<button class="deleteOtherAns" onclick="DeleteOtherAns(${i},${j},${k})">-</button>`:""}
+                                </div>`).join("")}
+                                <button class="addOtherAns" style="display: flex; align-items: center;" onclick="AddOtherAns(${i},${j})">+</button>
+                            </div>
+                            `).join("")}
+                            <button class="addOtherAns" style="display: flex; align-items: center;" onclick="AddAns(${i})">+</button>
+                        </div>`
+                        :""}
+                        
+                        ${data[i].type==="select"?
+                        `<label>・選択肢</label>
+                        <div style="display: flex;">
+                            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+                                ${data[i].choice.map((d,j)=>
+                                `<div style="display: flex; align-items: center; gap: 4px;">
+                                    <input id="choice${i},${j}" type="text" style="width: 95px; padding-right: 20px;" value="${data[i].choice[j]}">
+                                    ${j!=0?`<button class="deleteOtherAns" onclick="DeleteChoice(${i},${j})">-</button>`:""}
+                                </div>`).join("")}
+                                <button class="addOtherAns" style="display: flex; align-items: center;" onclick="AddChoice(${i})">+</button>
+                            </div>
+                        </div>
+                        <label>・答え</label>
+                        <select id="ans" style="width: 120px;">
+                            ${data[i].choice.map((d,j)=>
+                            `<option value="${d}" ${data[i].answer==d?"selected":""}>${d}</option>`).join("")}
+                        </select>
+                        `
+                        :""}
+                    </div>
+                </div>`
+            }
+            document.getElementById("questions").innerHTML=questions;
+
+            console.log(data);
+        }
+
+        function View(i){
+            if(qstData.data[i].view!="none"){
+                qstData.data[i].view="none";
+            }
+            else if(qstData.data[i].view=="none"){
+                qstData.data[i].view="flex";
+            }
+            UpDate();
+        }
+
+        let cstview="none";
+        
+        function CstView(){
+            if(cstview!="none"){
+                cstview="none";
+            }
+            else if(cstview=="none"){
+                cstview="block";
+            }
+            UpDate();
+        }
+
+        function DeleteOtherAns(i,j,k){
+            let data=qstData.data[i];
+            if(data.answer[j].length>1)data.answer[j].splice(k,1);
+            UpDate();
+        }
+
+        function DeleteAns(i,j){
+            let data=qstData.data[i];
+            if(data.answer.length>1)data.answer.splice(j,1);
+            UpDate();
+        }
+
+        function DeleteChoice(i,j){
+            let data=qstData.data[i];
+            data.choice.splice(j,1);
+            UpDate();
+        }
+
+        function DeleteCstWord(i){
+            qstData.customword.splice(i,1);
+            UpDate();
+        }
+
+        function AddOtherAns(i,j){
+            let data=qstData.data[i];
+            data.answer[j].push("");
+            UpDate();
+        }
+
+        function AddAns(i){
+            let data=qstData.data[i];
+            data.answer.push([""]);
+            UpDate();
+        }
+
+        function AddChoice(i){
+            let data=qstData.data[i];
+            data.choice.push("");
+            UpDate();
+        }
+
+        function AddCstWord(){
+            qstData.customword.push("");
+            UpDate();
+        }
+
+        function AddQ(){
+            let data=qstData.data;
+
+            data.push({
+                num:data.length,
+                subtitle:`問題${data.length+1}`,
+                type:"write",
+                question:"",
+                choice:[""],
+                boxsize:"mediumbox",
+                answer:[[""]],
+
+                view:"flex"
+            })
+            UpDate();
+        }
+
+        function DeleteQ(i){
+            let data=qstData.data;
+            if(data.length>1)data.splice(i,1);
+            UpDate();
+        }
+
+        function Downlaod(){
+            let Data=structuredClone(qstData);
+            let data=Data.data;
+            for(let i=0; i<data.length; i++){
+                let save=[];
+                if(data[i].type=="write"){
+                    save=["type","question","boxsize","answer"];
+                }else if(data[i].type=="select"){
+                    save=["type","question","choice","answer"];
+                }
+                Object.keys(data[i]).forEach(key => {
+                    if(!save.includes(key)){
+                        delete data[i][key];
+                    }
+                })
+            }
+
+            const qst=JSON.stringify(Data,null,2);
+            const blob = new Blob([qst], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${Data.title}.qst`;
+            a.click();
+
+            URL.revokeObjectURL(url);
+        }
+
+        UpDate();
+    </script>
+</body>
+</html>
