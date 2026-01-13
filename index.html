@@ -223,14 +223,16 @@
                 }
                 box+="</div>"
                 input.innerHTML=box;
+                document.getElementById("answer0").focus();
             }else if(data[n].type=="select"){
                 sentence.innerText=data[n].question;
                 let choice=`<div class="choice">`
                 for(let i=0;i<data[n].choice.length;i++){
-                    choice+=`<label class="choiceElement"><input type="radio" name="choice" value=${data[n].choice[i]}><span>${data[n].choice[i]}</span></label>`;
+                    choice+=`<label class="choiceElement"><input id="radio${i}" type="radio" name="choice" value=${data[n].choice[i]}><span>${data[n].choice[i]}</span></label>`;
                 }
-                choice+=`<label class="choiceElement"><input type="radio" name="choice" checked value=NULL><span>わからない</span></label></div>`;
+                choice+=`<label class="choiceElement"><input type="radio" name="choice" checked value="わからない"><span>わからない</span></label></div>`;
                 input.innerHTML=choice;
+                document.getElementById(`radio${data[n].choice.length-1}`).focus();
             }else if(data[n].type=="in_write"){
                 let in_W_ques="";
                 for(let i=0,j=0;i<data[n].question.length;i++){
@@ -243,6 +245,7 @@
                 }
                 sentence.innerText="";
                 input.innerHTML=in_W_ques;
+                document.getElementById("answer0").focus();
             }
         }
 
