@@ -145,11 +145,29 @@
             display: row;
             margin-left: auto;
         }
+        .inport{
+            margin: 30px;
+            gap: 10px;
+        }
+        .inportbtn{
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 4px;
+            padding-left: 8px;
+            padding-right: 8px;
+            text-align: center;
+            background-color: rgb(100, 199, 148);
+        }
     </style>
 </head>
 <body>
     <div class="center">
         <h1>問題作成用ページ</h1>
+        <div class="block center inport">
+            <input type="file" id="file">
+            <button class="inportbtn" onclick="LoadFile()">読み込み</button>
+        </div>
         <div>
             <div class="block" style="display: row;">
                 <div><input id="title" type="text" style="padding: 6px; font-size: large; align-self: flex-start; width: 150%;"></div>
@@ -167,7 +185,21 @@
     </div>
 
     <script>
-        
+        let inport_file;
+        document.getElementById("file").addEventListener("change",function(e){
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(){
+                inport_file = JSON.parse(reader.result);
+            }
+            reader.readAsText(file);
+        })
+
+        function LoadFile(){
+            qstData=inport_file;
+            UpDate();
+        }
         
         let qstData =
         {
@@ -435,9 +467,9 @@
             for(let i=0; i<data.length; i++){
                 let save=[];
                 if(data[i].type=="write"){
-                    save=["type","question","boxsize","answer"];
+                    save=["subtitle","type","question","boxsize","answer"];
                 }else if(data[i].type=="select"){
-                    save=["type","question","choice","answer"];
+                    save=["subtitle","type","question","choice","answer"];
                 }
                 Object.keys(data[i]).forEach(key => {
                     if(!save.includes(key)){
