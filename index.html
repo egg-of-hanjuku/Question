@@ -101,7 +101,7 @@
         <div class="block center">
             
             <label>問題ファイル(.qst)　<a href="create/" target="_blank" style="font-size: 80%;">作成はこちら</a></label>
-            <input type="file" id="qstFile" accept=".qst">
+            <input type="file" id="qstFile" accept=".qst" multiple>
         </div>
         <br>
         <div>
@@ -135,15 +135,17 @@
     </div>
 
     <script>
-        let preview;
+        let filesData=[];
         document.getElementById("qstFile").addEventListener("change",function(e){
-            const file = e.target.files[0];
-            const reader = new FileReader();
+            const files = e.target.files;
 
-            reader.onload = function(){
-                preview = JSON.parse(reader.result);
-            }
-            reader.readAsText(file);
+            Array.from(files).forEach((file,i)=>{
+                const reader = new FileReader();
+                reader.onload = function(){
+                filesData[i] = JSON.parse(reader.result);
+                }
+                reader.readAsText(file);
+            })
         })
 
         n=0;
@@ -155,14 +157,25 @@
         function Start(){
             n=0;
             mistake=[["問題","あなたの回答","正答"]];
-            questions = structuredClone(preview);
+            questions = {
+                customword:[],
+                data:[]
+            };
+
+            for(let i=0; i<filesData.length; i++){
+                questions.customword.push(...filesData[i].customword);
+                questions.data.push(...filesData[i].data);
+            }
+            
             data=questions.data;
+            
             if(document.getElementById("isRandom").checked){
                 for(let i=data.length-1; i>0; i--){
                     const j = Math.floor(Math.random()*(i+1));
                     [data[i],data[j]]=[data[j],data[i]];
                 }
             }
+
             document.getElementById("screen1").style="display:none";
             document.getElementById("screen2").style="display:flex";
             document.getElementById("screen3").style="display:none";
